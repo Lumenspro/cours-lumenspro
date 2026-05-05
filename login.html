@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Espace Apprenti - LUMEN S-PRO SERVICES</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
+    <style>
+        :root {--bleu:#1e3a8a; --orange:#ff6900; --gris:#f5f5f5;}
+        * {margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif;}
+        body {background:var(--gris); color:#333; line-height:1.6; display:flex; align-items:center; justify-content:center; min-height:100vh;}
+       .login-box {background:white; padding:3rem 2rem; border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,0.1); max-width:450px; width:90%;}
+       .login-box h1 {color:var(--bleu); text-align:center; margin-bottom:.5rem; font-size:1.8rem;}
+       .login-box p {text-align:center; margin-bottom:2rem; color:#666;}
+       .form-group {margin-bottom:1.2rem;}
+       .form-group label {display:block; margin-bottom:.5rem; font-weight:600; color:var(--bleu);}
+       .form-group input {width:100%; padding:12px; border:1px solid #ddd; border-radius:6px; font-size:1rem;}
+       .btn {background:var(--bleu); color:white; padding:12px 28px; text-decoration:none; border:none; border-radius:6px; display:inline-block; font-weight:bold; cursor:pointer; width:100%;}
+       .btn:disabled {background:#94a3b8; cursor:not-allowed;}
+       .btn-whatsapp {background:#25D366; margin-top:1rem;}
+       .error {background:#fee2e2; color:#991b1b; padding:.8rem; border-radius:6px; margin-bottom:1rem; display:none;}
+       .success {background:#d1fae5; color:#065f46; padding:.8rem; border-radius:6px; margin-bottom:1rem; display:none;}
+       .back {text-align:center; margin-top:1.5rem;}
+       .back a {color:var(--bleu); text-decoration:none;}
+       .loader {border:3px solid #f3f3f3; border-top:3px solid var(--bleu); border-radius:50%; width:20px; height:20px; animation:spin 1s linear infinite; display:inline-block; margin-left:10px; vertical-align:middle;}
+        @keyframes spin {0% {transform:rotate(0deg);} 100% {transform:rotate(360deg);}}
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>🔐 Espace Apprenti</h1>
+        <p>Entre le code d’accès reçu par WhatsApp</p>
+        <div class="error" id="errorMsg"></div>
+        <div class="success" id="successMsg"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Ton numéro WhatsApp</label>
+                <input type="tel" id="tel" required placeholder="90 00 00 00">
+            </div>
+            <div class="form-group">
+                <label>Code d’accès du cours</label>
+                <input type="text" id="code" required placeholder="Ex: LUMEN-MIKRO-KOSSI-4821" style="text-transform:uppercase">
+            </div>
+            <button type="submit" class="btn" id="btnLogin">Accéder à mes cours</button>
+        </form>
+        <a href="#" class="btn btn-whatsapp" id="btnNoCode">Je n’ai pas de code</a>
+        <div class="back">
+            <a href="index.html">← Retour à l’accueil</a>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        const app = initializeApp(LUMEN_CONFIG.firebase);
+        const db = getFirestore(app);
+        const coursMap = { "mikrotik": "cours-mikrotik.html", "hard": "cours-hard.html", "soft": "cours-soft.html", "pack": "mes-cours.html" };
+        document.getElementById('btnNoCode').href = `https://wa.me/${LUMEN_CONFIG.whatsapp}?text=Bonjour, je n'ai pas encore mon code d'accès`;
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const tel = document.getElementById('tel').value.trim().replace(/\s/g,'');
+            const code = document.getElementById('code').value.trim().toUpperCase();
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            const btnLogin = document.getElementById('btnLogin');
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            btnLogin.disabled = true;
+            btnLogin.innerHTML = 'Vérification... <span class="loader"></span>';
+            try {
+                const docRef = doc(db, "codes", code);
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) { throw new Error("Code invalide. Vérifie ou contacte-nous sur WhatsApp."); }
+                const data = docSnap.data();
+                if (!data.actif) { throw new Error("Ce code a été désactivé. Contacte LUMEN S-PRO."); }
+                if (data.tel!== tel) { throw new Error("Ce code n'est pas lié à ce numéro WhatsApp."); }
+                localStorage.setItem('lumenUser', data.nom);
+                localStorage.setItem('lumenTel', tel);
+                localStorage.setItem('lumenAccess', code);
+                localStorage.setItem('lumenType', data.type);
+                successMsg.textContent = `Bienvenue ${data.nom}! Redirection...`;
+                successMsg.style.display = 'block';
+                setTimeout(() => { window.location.href = coursMap[data.type]; }, 1500);
+            } catch (error) {
+                errorMsg.textContent = error.message;
+                errorMsg.style.display = 'block';
+                btnLogin.disabled = false;
+                btnLogin.innerHTML = 'Accéder à mes cours';
+            }
+        });
+        if(localStorage.getItem('lumenAccess')) { const type = localStorage.getItem('lumenType'); window.location.href = coursMap[type]; }
+    </script>
+</body>
+</html>

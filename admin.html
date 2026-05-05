@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin - LUMEN S-PRO SERVICES</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
+    <style>
+        :root {--bleu:#1e3a8a; --orange:#ff6900; --gris:#f5f5f5; --rouge:#ef4444; --vert:#10b981;}
+        * {margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif;}
+        body {background:var(--gris); color:#333; line-height:1.6;}
+        .container {max-width:1200px; margin:2rem auto; padding:0 1rem;}
+        .card {background:white; padding:2rem; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:2rem;}
+        h1 {color:var(--bleu); margin-bottom:1.5rem;}
+        h2 {color:var(--bleu); margin-bottom:1rem; font-size:1.3rem;}
+        .form-grid {display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1rem;}
+        .form-group label {display:block; margin-bottom:.5rem; font-weight:600; color:var(--bleu); font-size:.9rem;}
+        .form-group input,.form-group select {width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; font-size:1rem;}
+        .btn {background:var(--bleu); color:white; padding:10px 20px; text-decoration:none; border:none; border-radius:6px; display:inline-block; font-weight:bold; cursor:pointer;}
+        .btn-vert {background:var(--vert);}
+        .btn-rouge {background:var(--rouge);}
+        .btn:disabled {background:#94a3b8; cursor:not-allowed;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {padding:12px; text-align:left; border-bottom:1px solid #eee;}
+        th {background:#f8f9fa; color:var(--bleu); font-weight:600;}
+        .badge {padding:4px 10px; border-radius:20px; font-size:.8rem; font-weight:bold;}
+        .badge-actif {background:#d1fae5; color:#065f46;}
+        .badge-inactif {background:#fee2e2; color:#991b1b;}
+        .login-box {max-width:400px; margin:5rem auto;}
+        .hidden {display:none;}
+        .alert {padding:1rem; border-radius:6px; margin-bottom:1rem;}
+        .alert-error {background:#fee2e2; color:#991b1b;}
+        .alert-success {background:#d1fae5; color:#065f46;}
+        .topbar {background:var(--bleu); color:white; padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center;}
+    </style>
+</head>
+<body>
+    <div id="loginScreen">
+        <div class="login-box card">
+            <h1>🔐 Admin LUMEN S-PRO</h1>
+            <div class="alert alert-error" id="loginError" style="display:none;"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email Admin</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn" style="width:100%;">Se connecter</button>
+            </form>
+        </div>
+    </div>
+    <div id="dashboard" class="hidden">
+        <div class="topbar">
+            <h1>Admin - <span id="nomCentre"></span></h1>
+            <button onclick="logout()" class="btn btn-rouge">Déconnexion</button>
+        </div>
+        <div class="container">
+            <div class="card">
+                <h2>Générer un nouveau code d’accès</h2>
+                <div class="alert alert-success" id="successMsg" style="display:none;"></div>
+                <div class="alert alert-error" id="errorMsg" style="display:none;"></div>
+                <form id="genForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nom apprenti</label>
+                            <input type="text" id="nom" required placeholder="Kossi AGBO">
+                        </div>
+                        <div class="form-group">
+                            <label>Numéro WhatsApp</label>
+                            <input type="tel" id="tel" required placeholder="90000000">
+                        </div>
+                        <div class="form-group">
+                            <label>Type de cours</label>
+                            <select id="type" required>
+                                <option value="mikrotik">Mikrotik</option>
+                                <option value="hard">Réparation Hard</option>
+                                <option value="soft">Réparation Soft</option>
+                                <option value="pack">Pack Complet</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-vert">Générer le code</button>
+                </form>
+            </div>
+            <div class="card">
+                <h2>Codes actifs</h2>
+                <table id="codesTable">
+                    <thead><tr><th>Code</th><th>Nom</th><th>Tel</th><th>Type</th><th>Statut</th><th>Actions</th></tr></thead>
+                    <tbody id="codesBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, doc, setDoc, getDocs, updateDoc, deleteDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+        const app = initializeApp(LUMEN_CONFIG.firebase);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        document.getElementById('nomCentre').textContent = LUMEN_CONFIG.nom;
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboard = document.getElementById('dashboard');
+        const loginForm = document.getElementById('loginForm');
+        const genForm = document.getElementById('genForm');
+        const codesBody = document.getElementById('codesBody');
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginScreen.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+                loadCodes();
+            } else {
+                loginScreen.classList.remove('hidden');
+                dashboard.classList.add('hidden');
+            }
+        });
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                document.getElementById('loginError').textContent = 'Email ou mot de passe incorrect';
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+        window.logout = () => signOut(auth);
+        genForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nom = document.getElementById('nom').value.trim();
+            const tel = document.getElementById('tel').value.trim().replace(/\s/g,'');
+            const type = document.getElementById('type').value;
+            const code = `LUMEN-${type.toUpperCase()}-${nom.split(' ')[0].toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+            try {
+                await setDoc(doc(db, "codes", code), { nom, tel, type, actif: true, created: serverTimestamp() });
+                document.getElementById('successMsg').textContent = `Code généré : ${code}`;
+                document.getElementById('successMsg').style.display = 'block';
+                genForm.reset();
+                loadCodes();
+            } catch (error) {
+                document.getElementById('errorMsg').textContent = 'Erreur : ' + error.message;
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        });
+        async function loadCodes() {
+            const querySnapshot = await getDocs(collection(db, "codes"));
+            codesBody.innerHTML = '';
+            querySnapshot.forEach((docu) => {
+                const data = docu.data();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><code>${docu.id}</code></td>
+                    <td>${data.nom}</td>
+                    <td>${data.tel}</td>
+                    <td>${data.type}</td>
+                    <td><span class="badge ${data.actif? 'badge-actif' : 'badge-inactif'}">${data.actif? 'Actif' : 'Désactivé'}</span></td>
+                    <td>
+                        <button onclick="toggleCode('${docu.id}', ${data.actif})" class="btn" style="padding:5px 10px; font-size:.8rem;">${data.actif? 'Désactiver' : 'Activer'}</button>
+                        <button onclick="deleteCode('${docu.id}')" class="btn btn-rouge" style="padding:5px 10px; font-size:.8rem;">Suppr</button>
+                    </td>
+                `;
+                codesBody.appendChild(tr);
+            });
+        }
+        window.toggleCode = async (id, actif) => {
+            await updateDoc(doc(db, "codes", id), { actif:!actif });
+            loadCodes();
+        };
+        window.deleteCode = async (id) => {
+            if (confirm('Supprimer ce code?')) {
+                await deleteDoc(doc(db, "codes", id));
+                loadCodes();
+            }
+        };
+    </script>
+</body>
+</html>

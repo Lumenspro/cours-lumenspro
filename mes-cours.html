@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mes Cours - LUMEN S-PRO SERVICES</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
+    <style>
+        :root {--bleu:#1e3a8a; --orange:#ff6900; --gris:#f5f5f5;}
+        * {margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif;}
+        body {background:var(--gris); color:#333; line-height:1.6;}
+        header {background:var(--bleu); color:white; padding:1rem 2rem;}
+        nav {max-width:1100px; margin:auto; display:flex; justify-content:space-between; align-items:center;}
+        nav h1 {font-size:1.3rem;}
+        nav .user {font-size:.9rem;}
+        nav a {color:white; text-decoration:none; margin-left:1.5rem;}
+        .container {max-width:1100px; margin:3rem auto; padding:0 1rem;}
+        .welcome {background:white; padding:2rem; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:2rem;}
+        .welcome h1 {color:var(--bleu); margin-bottom:.5rem;}
+        .grid {display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:2rem;}
+        .card {background:white; border-radius:10px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+        .card-body {padding:1.5rem;}
+        .card-body h3 {color:var(--bleu); margin-bottom:.8rem;}
+        .badge {background:#10b981; color:white; font-size:.75rem; padding:4px 10px; border-radius:20px; display:inline-block; margin-bottom:1rem;}
+        .btn {background:var(--orange); color:white; padding:10px 20px; text-decoration:none; border:none; border-radius:6px; display:inline-block; font-weight:bold; cursor:pointer;}
+        .btn-logout {background:#ef4444; font-size:.9rem; padding:8px 16px;}
+        .loader {text-align:center; padding:3rem;}
+        .loader span {border:3px solid #f3f3f3; border-top:3px solid var(--bleu); border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; display:inline-block;}
+        @keyframes spin {0% {transform:rotate(0deg);} 100% {transform:rotate(360deg);}}
+        footer {background:#1e293b; color:#cbd5e1; text-align:center; padding:2rem 1rem; margin-top:3rem; font-size:.9rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <h1 id="nomCentre">LUMEN S-PRO SERVICES</h1>
+            <div class="user">
+                <span id="userInfo"></span>
+                <a href="#" onclick="logout()" class="btn btn-logout">Déconnexion</a>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="welcome">
+            <h1 id="welcomeMsg">Chargement...</h1>
+            <p id="welcomeSub">Vérification de ton accès en cours</p>
+        </div>
+        <div id="loader" class="loader"><span></span></div>
+        <div class="grid" id="coursList" style="display:none;"></div>
+    </div>
+    <footer id="footerText">
+        © 2026 LUMEN S-PRO SERVICES Vogan - Formation Réseau & Réparation Mobile.
+    </footer>
+    <script src="config.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        const app = initializeApp(LUMEN_CONFIG.firebase);
+        const db = getFirestore(app);
+        document.getElementById('nomCentre').textContent = LUMEN_CONFIG.nom;
+        document.getElementById('footerText').textContent = `© ${LUMEN_CONFIG.annee} ${LUMEN_CONFIG.nom} ${LUMEN_CONFIG.ville} - Formation Réseau & Réparation Mobile.`;
+        const coursDetails = {
+            "mikrotik": { titre: "Config Mikrotik & WiFi Pro", desc: "Hotspot, VLAN, QoS, Load Balancing", lien: "cours-mikrotik.html" },
+            "hard": { titre: "Réparation Téléphone Hard", desc: "Soudure, écran, batterie, carte mère", lien: "cours-hard.html" },
+            "soft": { titre: "Réparation Téléphone Soft", desc: "Flash, FRP, iCloud, déblocage", lien: "cours-soft.html" },
+            "pack": [
+                {titre: "Config Mikrotik & WiFi Pro", desc: "Hotspot, VLAN, QoS, Load Balancing", lien: "cours-mikrotik.html"},
+                {titre: "Réparation Téléphone Hard", desc: "Soudure, écran, batterie, carte mère", lien: "cours-hard.html"},
+                {titre: "Réparation Téléphone Soft", desc: "Flash, FRP, iCloud, déblocage", lien: "cours-soft.html"}
+            ]
+        };
+        async function checkAccess() {
+            const code = localStorage.getItem('lumenAccess');
+            const tel = localStorage.getItem('lumenTel');
+            if (!code || !tel) { window.location.href = 'login.html'; return; }
+            try {
+                const docRef = doc(db, "codes", code);
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists() || !docSnap.data().actif) {
+                    alert('Ton accès a expiré ou été révoqué.');
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const data = docSnap.data();
+                if (data.tel !== tel) {
+                    alert('Erreur de sécurité. Reconnecte-toi.');
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                document.getElementById('userInfo').textContent = `${data.nom} - ${tel}`;
+                document.getElementById('welcomeMsg').textContent = `Bienvenue dans ton espace formation, ${data.nom} 👋`;
+                document.getElementById('welcomeSub').textContent = `Voici les cours auxquels tu as accès. Bon apprentissage!`;
+                const coursList = document.getElementById('coursList');
+                const cours = coursDetails[data.type];
+                if (data.type === 'pack') {
+                    cours.forEach(c => {
+                        coursList.innerHTML += `<div class="card"><div class="card-body"><span class="badge">Actif</span><h3>${c.titre}</h3><p>${c.desc}</p><a href="${c.lien}" class="btn">Continuer le cours</a></div></div>`;
+                    });
+                } else {
+                    coursList.innerHTML = `<div class="card"><div class="card-body"><span class="badge">Actif</span><h3>${cours.titre}</h3><p>${cours.desc}</p><a href="${cours.lien}" class="btn">Continuer le cours</a></div></div>`;
+                }
+                document.getElementById('loader').style.display = 'none';
+                coursList.style.display = 'grid';
+            } catch (error) {
+                alert('Erreur de connexion. Réessaie.');
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+        window.logout = () => { localStorage.clear(); window.location.href = 'index.html'; };
+        checkAccess();
+    </script>
+</body>
+</html>

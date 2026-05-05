@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cours Réparation Téléphone Soft - LUMEN S-PRO SERVICES</title>
+    <meta name="description" content="Programme complet formation réparation téléphone Software à Vogan. Flash, déblocage FRP, iCloud, root. Outils pro + méthodes 2026."/>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
+    <style>
+        :root {--bleu:#1e3a8a; --orange:#ff6900; --gris:#f5f5f5;}
+        * {margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif;}
+        body {background:var(--gris); color:#333; line-height:1.6;}
+        header {background:var(--bleu); color:white; padding:1rem 2rem; position:sticky; top:0; z-index:50;}
+        nav {max-width:1100px; margin:auto; display:flex; justify-content:space-between; align-items:center;}
+        nav h1 {font-size:1.3rem;}
+        nav a {color:white; text-decoration:none; margin-left:1.5rem; font-weight:500;}
+        .user-bar {background:#1e293b; color:#cbd5e1; padding:.5rem 2rem; font-size:.9rem;}
+        .user-bar .container {max-width:1100px; margin:auto; display:flex; justify-content:space-between;}
+        .container {max-width:900px; margin:3rem auto; padding:0 1rem;}
+        .cours-header {background:white; padding:2rem; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:2rem;}
+        .cours-header h1 {color:var(--bleu); font-size:2rem; margin-bottom:1rem;}
+        .badge {background:var(--orange); color:white; font-size:.8rem; padding:5px 12px; border-radius:20px; display:inline-block;}
+        .lesson {background:white; padding:2.5rem; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:2rem;}
+        .lesson h2 {color:var(--bleu); margin-bottom:1.5rem; font-size:1.8rem; border-bottom:3px solid var(--orange); padding-bottom:.5rem;}
+        .lesson h3 {color:var(--bleu); margin:2rem 0 1rem; font-size:1.3rem;}
+        .lesson p {margin-bottom:1rem;}
+        .lesson ul, .lesson ol {margin:1rem 0 1.5rem 1.5rem;}
+        .lesson li {margin-bottom:.7rem;}
+        .capture {margin:2rem 0; text-align:center;}
+        .capture img {max-width:100%; border:2px solid #ddd; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+        .capture-caption {font-size:.9rem; color:#666; margin-top:.5rem; font-style:italic;}
+        .alert {background:#fff3cd; border-left:4px solid #ffc107; padding:1rem; margin:1.5rem 0; border-radius:6px;}
+        .code {background:#1e293b; color:#e2e8f0; padding:1rem; border-radius:6px; font-family:monospace; overflow-x:auto; margin:1rem 0;}
+        .menu-cours {background:white; padding:1.5rem; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:2rem;}
+        .menu-cours h3 {color:var(--bleu); margin-bottom:1rem;}
+        .menu-cours a {display:block; padding:.7rem; color:var(--bleu); text-decoration:none; border-bottom:1px solid #eee;}
+        .menu-cours a:hover {background:#f8f9fa;}
+        .menu-cours a.active {background:#eff6ff; font-weight:bold;}
+        .btn {background:var(--orange); color:white; padding:12px 28px; text-decoration:none; border:none; border-radius:6px; display:inline-block; font-weight:bold; cursor:pointer;}
+        .btn-whatsapp {background:#25D366;}
+        .btn-logout {background:#ef4444; font-size:.9rem; padding:6px 12px;}
+        .loader-screen {position:fixed; top:0; left:0; width:100%; height:100%; background:var(--gris); display:flex; align-items:center; justify-content:center; z-index:9999;}
+        .loader-screen span {border:3px solid #f3f3f3; border-top:3px solid var(--bleu); border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite;}
+        @keyframes spin {0% {transform:rotate(0deg);} 100% {transform:rotate(360deg);}}
+        footer {background:#1e293b; color:#cbd5e1; text-align:center; padding:2rem 1rem; margin-top:3rem; font-size:.9rem;}
+        @media(max-width:768px){nav a{display:none;}}
+    </style>
+</head>
+<body>
+    <div class="loader-screen" id="loaderScreen"><span></span></div>
+    <script src="config.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        const app = initializeApp(LUMEN_CONFIG.firebase);
+        const db = getFirestore(app);
+        const code = localStorage.getItem('lumenAccess');
+        const tel = localStorage.getItem('lumenTel');
+        const typeAutorise = ["soft", "pack"];
+        if (!code || !tel) { window.location.href = 'login.html'; } else {
+            const docRef = doc(db, "codes", code);
+            getDoc(docRef).then((docSnap) => {
+                if (!docSnap.exists() || !docSnap.data().actif || docSnap.data().tel !== tel || !typeAutorise.includes(docSnap.data().type)) {
+                    alert('Accès refusé ou expiré.');
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                } else {
+                    document.getElementById('userInfo').textContent = `${docSnap.data().nom} - ${tel}`;
+                    document.getElementById('loaderScreen').style.display = 'none';
+                }
+            }).catch(() => {
+                alert('Erreur de connexion.');
+                localStorage.clear();
+                window.location.href = 'login.html';
+            });
+        }
+        window.logout = () => { localStorage.clear(); window.location.href = 'index.html'; };
+    </script>
+    <div class="user-bar">
+        <div class="container">
+            <span>Connecté : <strong id="userInfo"></strong></span>
+            <button onclick="logout()" class="btn btn-logout">Déconnexion</button>
+        </div>
+    <header>
+        <nav>
+            <h1 id="nomCentre">LUMEN S-PRO SERVICES</h1>
+            <div>
+                <a href="mes-cours.html">Mes Cours</a>
+                <a href="index.html">Accueil</a>
+                <a href="about.html">À propos</a>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="cours-header">
+            <span class="badge">Module 1 - Actif</span>
+            <h1>Réparation Soft : Déblocage FRP Samsung Android 14</h1>
+            <p><strong>Niveau :</strong> Intermédiaire | <strong>Durée lecture :</strong> 25 min | <strong>Pratique :</strong> 1h</p>
+        </div>
+        <div class="menu-cours">
+            <h3>📚 Programme Complet Software</h3>
+            <a href="cours-soft.html" class="active">Module 1 : FRP Samsung Android 14 [Tu es ici]</a>
+            <a href="#">Module 2 : Bypass iCloud iOS 17 [Bientôt]</a>
+            <a href="#">Module 3 : Flash ROM officielle [Bientôt]</a>
+            <a href="#">Module 4 : Root + IMEI Repair [Bientôt]</a>
+        </div>
+        <div class="lesson">
+            <h2>1. C’est quoi le FRP ? Pourquoi ça bloque ?</h2>
+            <p>FRP = Factory Reset Protection. C’est la sécurité Google qui bloque le téléphone après une réinitialisation si tu ne connais pas le compte Google précédent.</p>
+            <p><strong>Symptôme :</strong> Après formatage, le téléphone demande "Cet appareil a été réinitialisé. Connectez-vous avec un compte Google déjà synchronisé".</p>
+            <div class="alert">
+                <strong>⚠️ Légal :</strong> Tu ne dois débloquer que des téléphones qui t’appartiennent ou avec facture du client. Débloquer un téléphone volé = complice de recel.
+            </div>
+            <h2>2. Méthode 2026 : Alliance Shield + Package Disabler</h2>
+            <p>Google a patché toutes les anciennes méthodes. Voici la seule qui marche en 2026 sur Android 13/14.</p>
+            <h3>Étape 1 : Accéder au navigateur</h3>
+            <ol>
+                <li>Sur l’écran "Vérifiez votre compte", clique sur <strong>E-mail ou téléphone</strong></li>
+                <li>Tape n’importe quoi, sélectionne le texte > <strong>Assistant</strong></li>
+                <li>Dis "Ouvrir YouTube" > YouTube s’ouvre > Paramètres > À propos > Conditions d’utilisation Google</li>
+                <li>Ça ouvre Chrome. Télécharge <strong>Alliance Shield X</strong> sur alliancex.org</li>
+            </ol>
+            <div class="capture">
+                <img src="https://i.imgur.com/placeholder-soft1.png" alt="Accès navigateur FRP">
+                <div class="capture-caption">Fig 1 : Passer par l’Assistant pour ouvrir Chrome sans compte</div>
+            </div>
+            <h3>Étape 2 : Installer Alliance Shield</h3>
+            <ol>
+                <li>Installe l’APK Alliance Shield X</li>
+                <li>Ouvre l’app > Crée un compte gratuit > Active Admin</li>
+                <li>Dans App Manager > Cherche <strong>Google Play Services</strong> > Force Stop + Wipe Data</li>
+                <li>Cherche <strong>Android Setup</strong> > Disable</li>
+            </ol>
+            <div class="capture">
+                <img src="https://i.imgur.com/placeholder-soft2.png" alt="Alliance Shield FRP">
+                <div class="capture-caption">Fig 2 : Désactiver Android Setup supprime la vérification FRP</div>
+            </div>
+            <h3>Étape 3 : Redémarrer et configurer</h3>
+            <ol>
+                <li>Redémarre le téléphone</li>
+                <li>Il va passer l’écran Google direct > Configure normalement</li>
+                <li>Une fois sur l’accueil, réactive Android Setup dans Alliance Shield</li>
+            </ol>
+            <div class="alert">
+                <strong>✅ Testé sur :</strong> Samsung A14, A24, A34, A54 Android 14 patch janvier 2026. Taux réussite 95%.
+            </div>
+            <h2>3. Méthode alternative : SamFw Tool + Test Mode</h2>
+            <p>Si Alliance Shield échoue, utilise SamFw Tool sur PC. Gratuit et sans box.</p>
+            <ol>
+                <li>Télécharge SamFw Tool sur samfw.com</li>
+                <li>Active le mode Test : <strong>*#0*#</strong> sur l’écran d’appel d’urgence</li>
+                <li>Branche le tel en USB > SamFw > Remove FRP > Android 13/14</li>
+                <li>Attends 2 min. Le tel redémarre débloqué.</li>
+            </ol>
+            <div class="code">
+* Attention : Test Mode *#0*# désactivé sur patch sécurité après mars 2026
+* Solution : Downgrade firmware avec Odin si possible
+            </div>
+            <h2>4. Les 3 erreurs qui brickent le téléphone</h2>
+            <ol>
+                <li><strong>Flasher un mauvais firmware</strong> → Bootloop = téléphone mort</li>
+                <li><strong>Désactiver Knox</strong> → Plus de Samsung Pay + garantie saute</li>
+                <li><strong>Oublier de réactiver Android Setup</strong> → Play Store ne marche plus</li>
+            </ol>
+            <div class="alert">
+                <strong>🎯 Exercice :</strong> Prends un Samsung A13 bloqué FRP. Débloque-le avec Alliance Shield. Envoie-moi une photo de l’écran d’accueil sur WhatsApp.
+            </div>
+            <h2>🚀 Module 2 : iCloud iOS 17</h2>
+            <p>Prochain module : Bypass iCloud avec checkm8 sur iPhone 6s à X. Prépare un Mac ou Linux.</p>
+            <a href="#" class="btn btn-whatsapp" id="btnQuestion">J’ai une question sur ce module</a>
+        </div>
+    <footer id="footerText">
+        © 2026 LUMEN S-PRO SERVICES Vogan - Formation Réseau & Réparation Mobile.
+    </footer>
+    <script>
+        document.getElementById('nomCentre').textContent = LUMEN_CONFIG.nom;
+        document.getElementById('footerText').textContent = `© ${LUMEN_CONFIG.annee} ${LUMEN_CONFIG.nom} ${LUMEN_CONFIG.ville} - Formation Réseau & Réparation Mobile.`;
+        document.getElementById('btnQuestion').href = `https://wa.me/${LUMEN_CONFIG.whatsapp}?text=J'ai%20une%20question%20sur%20le%20Module%201%20Soft`;
+    </script>
+</body>
+</html>
