@@ -1,182 +1,250 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin - LUMEN S-PRO SERVICES</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
-    <style>
-        :root {--bleu:#1e3a8a; --orange:#ff6900; --gris:#f5f5f5; --rouge:#ef4444; --vert:#10b981;}
-        * {margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif;}
-        body {background:var(--gris); color:#333; line-height:1.6;}
-        .container {max-width:1200px; margin:2rem auto; padding:0 1rem;}
-        .card {background:white; padding:2rem; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:2rem;}
-        h1 {color:var(--bleu); margin-bottom:1.5rem;}
-        h2 {color:var(--bleu); margin-bottom:1rem; font-size:1.3rem;}
-        .form-grid {display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1rem;}
-        .form-group label {display:block; margin-bottom:.5rem; font-weight:600; color:var(--bleu); font-size:.9rem;}
-        .form-group input,.form-group select {width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; font-size:1rem;}
-        .btn {background:var(--bleu); color:white; padding:10px 20px; text-decoration:none; border:none; border-radius:6px; display:inline-block; font-weight:bold; cursor:pointer;}
-        .btn-vert {background:var(--vert);}
-        .btn-rouge {background:var(--rouge);}
-        .btn:disabled {background:#94a3b8; cursor:not-allowed;}
-        table {width:100%; border-collapse:collapse; margin-top:1rem;}
-        th, td {padding:12px; text-align:left; border-bottom:1px solid #eee;}
-        th {background:#f8f9fa; color:var(--bleu); font-weight:600;}
-        .badge {padding:4px 10px; border-radius:20px; font-size:.8rem; font-weight:bold;}
-        .badge-actif {background:#d1fae5; color:#065f46;}
-        .badge-inactif {background:#fee2e2; color:#991b1b;}
-        .login-box {max-width:400px; margin:5rem auto;}
-        .hidden {display:none;}
-        .alert {padding:1rem; border-radius:6px; margin-bottom:1rem;}
-        .alert-error {background:#fee2e2; color:#991b1b;}
-        .alert-success {background:#d1fae5; color:#065f46;}
-        .topbar {background:var(--bleu); color:white; padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center;}
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - LUMEN S-PRO SERVICES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .hidden { display: none; }
+    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
 </head>
-<body>
-    <div id="loginScreen">
-        <div class="login-box card">
-            <h1>🔐 Admin LUMEN S-PRO</h1>
-            <div class="alert alert-error" id="loginError" style="display:none;"></div>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label>Email Admin</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label>Mot de passe</label>
-                    <input type="password" id="password" required>
-                </div>
-                <button type="submit" class="btn" style="width:100%;">Se connecter</button>
-            </form>
+<body class="bg-gray-100">
+
+  <!-- Page de Connexion -->
+  <div id="login-page" class="min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <h1 class="text-2xl font-bold text-center mb-6 text-blue-600">LUMEN S-PRO ADMIN</h1>
+      <div id="login-error" class="hidden bg-red-100 text-red-700 p-3 rounded mb-4 text-sm"></div>
+      <form id="login-form">
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+          <input id="email" type="email" class="w-full p-3 border rounded-lg" placeholder="etslumenspro@gmail.com" required>
         </div>
+        <div class="mb-6">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Mot de passe</label>
+          <input id="password" type="password" class="w-full p-3 border rounded-lg" placeholder="********" required>
+        </div>
+        <button id="login-btn" type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700">
+          Se connecter
+        </button>
+      </form>
     </div>
-    <div id="dashboard" class="hidden">
-        <div class="topbar">
-            <h1>Admin - <span id="nomCentre"></span></h1>
-            <button onclick="logout()" class="btn btn-rouge">Déconnexion</button>
+  </div>
+
+  <!-- Dashboard Admin -->
+  <div id="dashboard-page" class="hidden">
+    <nav class="bg-blue-600 p-4 text-white flex justify-between items-center">
+      <h1 class="text-xl font-bold">Dashboard LumenSpro</h1>
+      <button id="logout-btn" class="bg-red-500 px-4 py-2 rounded hover:bg-red-600">Déconnexion</button>
+    </nav>
+    
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h3 class="text-gray-500 text-sm">Total Apprenants</h3>
+          <p id="total-apprenants" class="text-3xl font-bold">0</p>
         </div>
-        <div class="container">
-            <div class="card">
-                <h2>Générer un nouveau code d’accès</h2>
-                <div class="alert alert-success" id="successMsg" style="display:none;"></div>
-                <div class="alert alert-error" id="errorMsg" style="display:none;"></div>
-                <form id="genForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Nom apprenti</label>
-                            <input type="text" id="nom" required placeholder="Kossi AGBO">
-                        </div>
-                        <div class="form-group">
-                            <label>Numéro WhatsApp</label>
-                            <input type="tel" id="tel" required placeholder="90000000">
-                        </div>
-                        <div class="form-group">
-                            <label>Type de cours</label>
-                            <select id="type" required>
-                                <option value="mikrotik">Mikrotik</option>
-                                <option value="hard">Réparation Hard</option>
-                                <option value="soft">Réparation Soft</option>
-                                <option value="pack">Pack Complet</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-vert">Générer le code</button>
-                </form>
-            </div>
-            <div class="card">
-                <h2>Codes actifs</h2>
-                <table id="codesTable">
-                    <thead><tr><th>Code</th><th>Nom</th><th>Tel</th><th>Type</th><th>Statut</th><th>Actions</th></tr></thead>
-                    <tbody id="codesBody"></tbody>
-                </table>
-            </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h3 class="text-gray-500 text-sm">Codes Actifs</h3>
+          <p id="total-codes" class="text-3xl font-bold">0</p>
         </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h3 class="text-gray-500 text-sm">Revenus Estimés</h3>
+          <p id="total-revenus" class="text-3xl font-bold">0 FCFA</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-bold mb-4">Générer des codes d'accès</h2>
+        <div class="flex gap-4 items-end">
+          <div>
+            <label class="block text-sm font-bold mb-2">Cours</label>
+            <select id="cours-select" class="p-2 border rounded">
+              <option value="mikrotik-complet">Cours Complet MikroTik</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold mb-2">Quantité</label>
+            <input id="quantite" type="number" value="1" min="1" max="50" class="p-2 border rounded w-24">
+          </div>
+          <button id="generer-btn" class="bg-green-600 text-white px-6 py-2 rounded font-bold hover:bg-green-700">
+            Générer
+          </button>
+        </div>
+        <div id="codes-generes" class="mt-4"></div>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-bold mb-4">Derniers codes générés</h2>
+        <div id="liste-codes" class="space-y-2">
+          <p class="text-gray-500">Aucun code pour l'instant</p>
+        </div>
+      </div>
     </div>
-    <script src="config.js"></script>
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-        import { getFirestore, doc, setDoc, getDocs, updateDoc, deleteDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-        const app = initializeApp(LUMEN_CONFIG.firebase);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        document.getElementById('nomCentre').textContent = LUMEN_CONFIG.nom;
-        const loginScreen = document.getElementById('loginScreen');
-        const dashboard = document.getElementById('dashboard');
-        const loginForm = document.getElementById('loginForm');
-        const genForm = document.getElementById('genForm');
-        const codesBody = document.getElementById('codesBody');
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                loginScreen.classList.add('hidden');
-                dashboard.classList.remove('hidden');
-                loadCodes();
-            } else {
-                loginScreen.classList.remove('hidden');
-                dashboard.classList.add('hidden');
-            }
-        });
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                document.getElementById('loginError').textContent = 'Email ou mot de passe incorrect';
-                document.getElementById('loginError').style.display = 'block';
-            }
-        });
-        window.logout = () => signOut(auth);
-        genForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nom = document.getElementById('nom').value.trim();
-            const tel = document.getElementById('tel').value.trim().replace(/\s/g,'');
-            const type = document.getElementById('type').value;
-            const code = `LUMEN-${type.toUpperCase()}-${nom.split(' ')[0].toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-            try {
-                await setDoc(doc(db, "codes", code), { nom, tel, type, actif: true, created: serverTimestamp() });
-                document.getElementById('successMsg').textContent = `Code généré : ${code}`;
-                document.getElementById('successMsg').style.display = 'block';
-                genForm.reset();
-                loadCodes();
-            } catch (error) {
-                document.getElementById('errorMsg').textContent = 'Erreur : ' + error.message;
-                document.getElementById('errorMsg').style.display = 'block';
-            }
-        });
-        async function loadCodes() {
-            const querySnapshot = await getDocs(collection(db, "codes"));
-            codesBody.innerHTML = '';
-            querySnapshot.forEach((docu) => {
-                const data = docu.data();
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><code>${docu.id}</code></td>
-                    <td>${data.nom}</td>
-                    <td>${data.tel}</td>
-                    <td>${data.type}</td>
-                    <td><span class="badge ${data.actif? 'badge-actif' : 'badge-inactif'}">${data.actif? 'Actif' : 'Désactivé'}</span></td>
-                    <td>
-                        <button onclick="toggleCode('${docu.id}', ${data.actif})" class="btn" style="padding:5px 10px; font-size:.8rem;">${data.actif? 'Désactiver' : 'Activer'}</button>
-                        <button onclick="deleteCode('${docu.id}')" class="btn btn-rouge" style="padding:5px 10px; font-size:.8rem;">Suppr</button>
-                    </td>
-                `;
-                codesBody.appendChild(tr);
-            });
-        }
-        window.toggleCode = async (id, actif) => {
-            await updateDoc(doc(db, "codes", id), { actif:!actif });
-            loadCodes();
-        };
-        window.deleteCode = async (id) => {
-            if (confirm('Supprimer ce code?')) {
-                await deleteDoc(doc(db, "codes", id));
-                loadCodes();
-            }
-        };
-    </script>
+  </div>
+
+<script type="module">
+  // 1. IMPORTS FIREBASE + CONFIG
+  import { LUMEN_CONFIG } from './config.js';
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // 2. INIT FIREBASE
+  const app = initializeApp(LUMEN_CONFIG.firebase);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // 3. ELEMENTS DOM
+  const loginPage = document.getElementById('login-page');
+  const dashboardPage = document.getElementById('dashboard-page');
+  const loginForm = document.getElementById('login-form');
+  const loginError = document.getElementById('login-error');
+  const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const genererBtn = document.getElementById('generer-btn');
+  const codesGeneresDiv = document.getElementById('codes-generes');
+  const listeCodesDiv = document.getElementById('liste-codes');
+
+  // 4. GESTION CONNEXION
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Vérifier si c'est un admin
+      const adminRef = doc(db, "admins", user.email);
+      const adminSnap = await getDoc(adminRef);
+      
+      if (adminSnap.exists()) {
+        loginPage.classList.add('hidden');
+        dashboardPage.classList.remove('hidden');
+        chargerStats();
+        chargerCodes();
+      } else {
+        afficherErreur("Accès refusé. Vous n'êtes pas admin.");
+        await signOut(auth);
+      }
+    } else {
+      loginPage.classList.remove('hidden');
+      dashboardPage.classList.add('hidden');
+    }
+  });
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Connexion...";
+    loginError.classList.add('hidden');
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      afficherErreur(getErrorMessage(error.code));
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Se connecter";
+    }
+  });
+
+  logoutBtn.addEventListener('click', () => signOut(auth));
+
+  // 5. GÉNÉRATION CODES
+  genererBtn.addEventListener('click', async () => {
+    const cours = document.getElementById('cours-select').value;
+    const quantite = parseInt(document.getElementById('quantite').value);
+    
+    if (quantite < 1 || quantite > 50) {
+      alert("Quantité entre 1 et 50");
+      return;
+    }
+
+    genererBtn.disabled = true;
+    genererBtn.textContent = "Génération...";
+    codesGeneresDiv.innerHTML = '<div class="loader mx-auto"></div>';
+
+    const codes = [];
+    for (let i = 0; i < quantite; i++) {
+      const code = 'LUMEN-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      codes.push(code);
+      
+      await addDoc(collection(db, "codes"), {
+        code: code,
+        cours: cours,
+        utilise: false,
+        dateCreation: serverTimestamp(),
+        creePar: auth.currentUser.email
+      });
+    }
+
+    codesGeneresDiv.innerHTML = `
+      <div class="bg-green-100 p-4 rounded">
+        <p class="font-bold text-green-700 mb-2">${quantite} codes générés :</p>
+        <div class="bg-white p-3 rounded font-mono text-sm">
+          ${codes.join('<br>')}
+        </div>
+        <button onclick="navigator.clipboard.writeText('${codes.join('\\n')}')" 
+                class="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-sm">
+          Copier tout
+        </button>
+      </div>
+    `;
+    
+    genererBtn.disabled = false;
+    genererBtn.textContent = "Générer";
+    chargerCodes();
+    chargerStats();
+  });
+
+  // 6. FONCTIONS UTILITAIRES
+  async function chargerStats() {
+    const codesSnap = await getDocs(query(collection(db, "codes"), where("utilise", "==", false)));
+    document.getElementById('total-codes').textContent = codesSnap.size;
+    
+    const apprenantsSnap = await getDocs(collection(db, "apprenants"));
+    document.getElementById('total-apprenants').textContent = apprenantsSnap.size;
+    document.getElementById('total-revenus').textContent = (apprenantsSnap.size * 25000) + ' FCFA';
+  }
+
+  async function chargerCodes() {
+    const q = query(collection(db, "codes"), where("utilise", "==", false));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      listeCodesDiv.innerHTML = '<p class="text-gray-500">Aucun code actif</p>';
+      return;
+    }
+
+    listeCodesDiv.innerHTML = '';
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      listeCodesDiv.innerHTML += `
+        <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+          <span class="font-mono">${data.code}</span>
+          <span class="text-sm text-gray-500">${data.cours}</span>
+        </div>
+      `;
+    });
+  }
+
+  function afficherErreur(message) {
+    loginError.textContent = message;
+    loginError.classList.remove('hidden');
+  }
+
+  function getErrorMessage(code) {
+    switch(code) {
+      case 'auth/invalid-email': return 'Email invalide';
+      case 'auth/user-not-found': return 'Compte introuvable';
+      case 'auth/wrong-password': return 'Mot de passe incorrect';
+      case 'auth/invalid-credential': return 'Email ou mot de passe incorrect';
+      default: return 'Erreur de connexion. Réessaie.';
+    }
+  }
+</script>
+
 </body>
 </html>
